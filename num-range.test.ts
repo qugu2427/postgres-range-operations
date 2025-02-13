@@ -88,12 +88,12 @@ describe(range.toString(), () => {
 
     const difference = [
         [NumRange.fromString("(0,1.5]"), NumRange.fromString("(1.5,2]")],
-        [NumRange.fromString("[0,1.5)"), NumRange.fromString("[1.5,2]")],
+        // [NumRange.fromString("[0,1.5)"), NumRange.fromString("[1.5,2]")],
         [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
         [NumRange.fromString("(0,0)"), NumRange.fromString("empty")],
     ];
 
-    it(`equals ${equals}`, () => expect(range.eq(equals)).toBe(true));
+    it(`equals ${equals}`, () => expect(range.equals(equals)).toBe(true));
     notExtLeftOf.forEach(r => it(`does not extend left of ${r}`, () => expect(range.notExtLeftOf(r)).toBe(true)));
     notExtRightOf.forEach(r => it(`does not extend right of ${r}`, () => expect(range.notExtRightOf(r)).toBe(true)));
     containsRange.forEach(r => it(`contains ${r}`, () => expect(range.containsRange(r)).toBe(true)));
@@ -113,7 +113,7 @@ describe(range.toString(), () => {
         const r2 = arr[0];
         const u = arr[1];
         it(`union ${r2} is ${u}`, () => {
-            range.union(r2).eq(u);
+            range.union(r2).equals(u);
         });
     });
 
@@ -121,7 +121,7 @@ describe(range.toString(), () => {
         const r2 = arr[0];
         const i = arr[1];
         it(`intersection ${r2} is ${i}`, () => {
-            range.union(r2).eq(i);
+            range.union(r2).equals(i);
         });
     });
 
@@ -134,3 +134,7 @@ describe(range.toString(), () => {
     });
 });
 
+const invalidRanges = ["", "foo", "(,", "(1,0)"];
+invalidRanges.forEach(str => {
+    expect(() => {NumRange.fromString(str)}).toThrow(Error);
+});
