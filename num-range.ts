@@ -3,7 +3,7 @@ import { Range } from "./range"
 export class NumRange extends Range<number> {
 
     constructor(lowerBound: number, upperBound: number, flags: number) {
-        super(lowerBound, upperBound, flags);
+        super(lowerBound, upperBound, flags, x => x, x => x);
     }
 
     static fromString(rangeStr: string): NumRange {
@@ -17,14 +17,14 @@ export class NumRange extends Range<number> {
 
         var flags: number = 0;
         if (rangeStr[0] === '[') {
-            flags |= Range.FLAG_CLOSED_LOWER_BOUND;
+            flags |= Range.FLAG_LOWER_INC;
         }
-        if (rangeStr[rangeStr.length-1] === ']') {
-            flags |= Range.FLAG_CLOSED_UPPER_BOUND;
+        if (rangeStr[rangeStr.length - 1] === ']') {
+            flags |= Range.FLAG_UPPER_INC;
         }
         const commaIndex: number = rangeStr.indexOf(',');
-        const lowerBoundStr: string = rangeStr.substring(1,commaIndex);
-        const upperBoundStr: string = rangeStr.substring(commaIndex+1,rangeStr.length-1);
+        const lowerBoundStr: string = rangeStr.substring(1, commaIndex);
+        const upperBoundStr: string = rangeStr.substring(commaIndex + 1, rangeStr.length - 1);
 
         const lowerBound: number = lowerBoundStr === "" ? -Infinity : Number(lowerBoundStr);
         const upperBound: number = upperBoundStr === "" ? Infinity : Number(upperBoundStr);
@@ -32,8 +32,8 @@ export class NumRange extends Range<number> {
         if (isNaN(lowerBound) || isNaN(upperBound)) {
             throw new Error("NaN not allowed in range");
         } else if (
-            lowerBound === -Infinity && ((flags & Range.FLAG_CLOSED_LOWER_BOUND) != 0) ||
-            upperBound === Infinity && ((flags & Range.FLAG_CLOSED_UPPER_BOUND) != 0)
+            lowerBound === -Infinity && ((flags & Range.FLAG_LOWER_INC) != 0) ||
+            upperBound === Infinity && ((flags & Range.FLAG_UPPER_INC) != 0)
         ) {
             throw new Error("infinite bounds cannot be closed");
         } else if (lowerBound === Infinity) {

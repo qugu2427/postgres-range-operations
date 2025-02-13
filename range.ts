@@ -1,20 +1,32 @@
-export class Range<T extends number | Date> {
+type RangeFlag = number;
+
+export class Range<T> {
     protected static readonly DEFAULT_RANGE_RGX: RegExp = /^.+$/;
 
-    static readonly FLAG_EMPTY: number = 0b100
-    static readonly FLAG_CLOSED_LOWER_BOUND: number = 0b010;
-    static readonly FLAG_CLOSED_UPPER_BOUND: number = 0b001;
+    static readonly FLAG_EMPTY: RangeFlag = 0b100
+    static readonly FLAG_LOWER_INC: RangeFlag = 0b010;
+    static readonly FLAG_UPPER_INC: RangeFlag = 0b001;
 
-    private flags = 0;
-    private lowerBound: T;
-    private upperBound: T;
+    flags = 0;
+    lowerBound: number;
+    upperBound: number;
+    valToNum: (val: T) => number;
+    numToVal: (num: number) => T;
 
-    constructor(lowerBound: T, upperBound: T, flags: number) {
-        if (lowerBound > upperBound) {
+    constructor(
+        lowerBound: T,
+        upperBound: T,
+        flags: number,
+        valToNum: (val: T) => number,
+        numToVal: (num: number) => T
+    ) {
+        this.valToNum = valToNum;
+        this.numToVal = numToVal;
+        this.lowerBound = valToNum(lowerBound);
+        this.upperBound = valToNum(upperBound);
+        if (this.lowerBound > this.upperBound) {
             throw new Error("lower bound greater than upper bound")
         }
-        this.lowerBound = lowerBound;
-        this.upperBound = upperBound;
         this.flags = flags;
     }
 
@@ -22,196 +34,251 @@ export class Range<T extends number | Date> {
         return (this.flags & flag) != 0;
     }
 
-    // getEmptyRange(): Range<T> {
-    //     return new Range<T>(0, 0, Range.FLAG_EMPTY);
-    // }
-
-    getFlags(): number {
-        return this.flags;
+    getEmptyRange(): Range<T> {
+        return new Range<T>(
+            this.numToVal(NaN),
+            this.numToVal(NaN),
+            Range.FLAG_EMPTY,
+            this.valToNum,
+            this.numToVal
+        );
     }
 
-    setLowerBound(lowerBound: T): void {
-        if (lowerBound > this.upperBound) {
-            throw new Error("lower bound greater than upper bound")
-        }
-        this.lowerBound = lowerBound
+    /*
+
+        equivalent of postgres 'lower_inc()'
+    */
+    lowerInc(): boolean {
+        return this.hasFlag(Range.FLAG_LOWER_INC);
     }
 
-    getLowerBound(): T {
-        return this.lowerBound;
+    /*
+
+        equivalent of psotgres 'upper_inc()'
+    */
+    upperInc(): boolean {
+        return this.hasFlag(Range.FLAG_UPPER_INC);
     }
 
-    setUpperBound(upperBound: T): void {
-        if (upperBound < this.lowerBound) {
-            throw new Error("upper bound less than lower bound")
-        }
-        this.upperBound = upperBound;
-    }
+    /*
 
-    getUpperBound(): T {
-        return this.upperBound;
-    }
-
-    hasClosedLowerBound(): boolean {
-        return this.hasFlag(Range.FLAG_CLOSED_LOWER_BOUND);
-    }
-
-    hasClosedUpperBound(): boolean {
-        return this.hasFlag(Range.FLAG_CLOSED_UPPER_BOUND);
-    }
-
+        equivalent of postgres 'isempty()'
+    */
     isEmpty(): boolean {
         return this.hasFlag(Range.FLAG_EMPTY);
     }
 
-    // equals
+    /*
+
+        equivalent of postgres '='
+    */
     eq(range: Range<T>): boolean {
-        if (this.isEmpty() && range.isEmpty()) {
-            return true;
-        }
-        return this.lowerBound === range.getLowerBound() &&
-            this.upperBound === range.getUpperBound() &&
-            this.flags === range.getFlags();
+        return this.lowerBound === range.lowerBound &&
+            this.upperBound === range.upperBound &&
+            this.flags === range.flags;
     }
 
-    // less than
-    lt(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
-        } else if (this.lowerBound === range.getLowerBound()) {
-            return this.hasClosedLowerBound() && !range.hasClosedLowerBound();
+    /*
+
+        equivalent of postgres '&<'
+    */
+    notExtLeftOf(range: Range<T>): boolean {
+        if (this.lowerBound === range.lowerBound) {
+            return this.lowerInc() === range.lowerInc() ||
+                !this.lowerInc();
         }
-        return this.lowerBound < range.getLowerBound();
+        return this.lowerBound > range.lowerBound;
     }
 
-    // less than or equal to
-    le(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return this.isEmpty() === range.isEmpty();
-        }
-        return this.lowerBound === range.getLowerBound() || this.lowerBound < range.getLowerBound();
-    }
+    /*
 
-    // greater than
-    gt(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
-        } else if (this.upperBound === range.getUpperBound()) {
-            return this.hasClosedUpperBound() && !range.getUpperBound();
+        equivalent of postgres '&>'
+    */
+    notExtRightOf(range: Range<T>): boolean {
+        if (this.upperBound === range.upperBound) {
+            return this.upperInc() === range.upperInc() ||
+                !this.upperInc();
         }
-        return this.upperBound > range.getUpperBound();
-    }
-    
-    // greater than or equal to
-    ge(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return this.isEmpty() === range.isEmpty();
-        }
-        return this.upperBound === range.getUpperBound() || this.upperBound > range.getUpperBound();
+        return this.upperBound < range.upperBound;
     }
 
     containsRange(range: Range<T>): boolean {
-        return this.le(range) && this.ge(range);
+        return range.notExtLeftOf(this) && range.notExtRightOf(this);
     }
 
     containsPoint(point: T): boolean {
-        if (this.isEmpty()) {
-            return false;
-        }
-        return (point > this.lowerBound && point < this.upperBound) ||
-            (point === this.lowerBound && this.hasClosedLowerBound()) ||
-            (point === this.upperBound && this.hasClosedUpperBound());
+        const p: number = this.valToNum(point);
+        return (p > this.lowerBound && p < this.upperBound) ||
+            (p === this.lowerBound && this.lowerInc()) ||
+            (p === this.upperBound && this.upperInc());
     }
 
     overlaps(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
-        }
-        return !(this.leftOf(range) || this.rightOf(range));
+        return !(
+            this.strictlyLeftOf(range) ||
+            this.strictlyRightOf(range) ||
+            this.isEmpty() ||
+            range.isEmpty()
+        );
     }
 
-    // strictly left of
-    leftOf(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
+    strictlyLeftOf(range: Range<T>): boolean {
+        if (this.upperBound === range.lowerBound) {
+            return !this.upperInc() || !range.lowerInc();
         }
-        return this.upperBound < range.getLowerBound() ||
-            (this.upperBound === range.getLowerBound() && !range.getLowerBound());
+        return this.upperBound < range.lowerBound;
     }
 
-    // strictly right of
-    rightOf(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
+    strictlyRightOf(range: Range<T>): boolean {
+        if (this.lowerBound === range.upperBound) {
+            return !this.lowerInc() || !range.upperInc();
         }
-        return this.lowerBound > range.getUpperBound() ||
-            (this.lowerBound === range.getUpperBound() && !range.getUpperBound());
+        return this.lowerBound > range.upperBound;
     }
 
     adjacentTo(range: Range<T>): boolean {
-        if (this.isEmpty() || range.isEmpty()) {
-            return false;
+        return this.upperBound === range.lowerBound ||
+            this.lowerBound === range.upperBound;
+    }
+
+    union(range: Range<T>): Range<T> {
+        let lowerBound: number;
+        let upperBound: number;
+        let flags: number = 0;
+
+        if (this.isEmpty() && range.isEmpty()) {
+            return this.getEmptyRange();
+        } else if (range.isEmpty()) {
+            return this.copy();
+        } else if (this.isEmpty()) {
+            return range.copy();
         }
-        return this.upperBound === range.getLowerBound() ||
-            this.lowerBound === range.getUpperBound();
+
+        if (!(this.overlaps(range) || range.adjacentTo(this))) {
+            throw new Error("cannot union non-overlapping or non-adjacent ranges")
+        }
+
+        if (this.lowerBound < range.lowerBound) {
+            lowerBound = this.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & this.flags;
+        } else if (this.lowerBound > range.lowerBound) {
+            lowerBound = range.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & range.flags;
+        } else {
+            lowerBound = this.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & (this.flags | range.flags);
+        }
+
+        if (this.upperBound > range.upperBound) {
+            upperBound = this.upperBound;
+            flags |= Range.FLAG_UPPER_INC & this.flags;
+        } else if (this.upperBound < range.upperBound) {
+            upperBound = range.upperBound;
+            flags |= Range.FLAG_UPPER_INC & range.flags;
+        } else {
+            upperBound = this.upperBound;
+            flags |= Range.FLAG_UPPER_INC & (range.flags | this.flags);
+        }
+
+        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
     }
 
     intersection(range: Range<T>): Range<T> {
         if (!this.overlaps(range)) {
-            return new Range<T>(0 as T, 0 as T, Range.FLAG_EMPTY);
+            return this.getEmptyRange();
         }
 
         let flags: number = 0;
-        let lowerBound: T;
-        let upperBound: T;
+        let lowerBound: number;
+        let upperBound: number;
 
         if (range.lowerBound < this.lowerBound) {
             lowerBound = this.lowerBound;
         } else if (range.lowerBound > this.lowerBound) {
             lowerBound = range.lowerBound;
-        } else if (range.hasClosedLowerBound() && this.hasClosedLowerBound()) {
-            lowerBound = this.lowerBound;
-            flags |= Range.FLAG_CLOSED_LOWER_BOUND;
         } else {
             lowerBound = this.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & (this.flags & range.flags)
         }
 
         if (range.upperBound > this.upperBound) {
             upperBound = this.upperBound;
         } else if (range.upperBound < this.upperBound) {
             upperBound = range.upperBound;
-        } else if (range.hasClosedUpperBound() && this.hasClosedUpperBound()) {
-            upperBound = this.upperBound;
-            flags |= Range.FLAG_CLOSED_UPPER_BOUND;
         } else {
             upperBound = this.upperBound;
+            flags |= Range.FLAG_UPPER_INC & (this.flags & range.flags)
         }
 
-        return new Range<T>(lowerBound, upperBound, flags);
+        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
     }
 
-    // union(range: Range<T>): Range<T> {
+    difference(range: Range<T>): Range<T> {
+        let lowerBound: number = this.lowerBound;
+        let upperBound: number = this.upperBound;
+        let flags: number = 0;
 
-    // }
+        if (!this.overlaps(range)) {
+            return this.copy();
+        }
 
-    // union(range: IntRange): IntRange {
-    //     return range.
-    // }
+        if (
+            range.lowerInc()
+            && this.lowerBound <= range.lowerBound
+            && this.upperBound <= range.upperBound
+        ) {
+            upperBound = range.lowerBound;
+            flags |= range.lowerInc() ? 0 : Range.FLAG_UPPER_INC;
+        } else if (
+            range.upperInc()
+            && range.lowerBound <= this.lowerBound
+            && range.upperBound <= this.upperBound) {
+            lowerBound = range.upperBound;
+            flags |= range.upperInc() ? 0 : Range.FLAG_LOWER_INC;
+        } else if (
+            !this.lowerInc()
+            && this.upperInc()
+            && !range.upperInc()
+            && range.lowerInc()
+            && this.upperBound >= range.lowerBound
+        ) {
+            upperBound = range.lowerBound;
+            flags |= range.lowerInc() ? 0 : Range.FLAG_UPPER_INC;
+            flags |= Range.FLAG_LOWER_INC;
+        } else if (
+            this.lowerInc()
+            && !this.upperInc()
+            && range.upperInc()
+            && !range.lowerInc()
+            && this.lowerBound <= range.upperBound
+        ) {
+            lowerBound = range.upperBound;
+            flags |= range.upperInc() ? 0 : Range.FLAG_LOWER_INC;
+            flags |= Range.FLAG_LOWER_INC;
+        } else if (
+            !this.lowerInc()
+            && !this.upperInc()
+            && !range.upperInc()
+            && !range.lowerInc()
+        ) {
+            return this.getEmptyRange();
+        } else {
+            throw new RangeError("cannot difference to multiple disjoint ranges");
+        }
 
-    // intersection(range: IntRange): IntRange {
-
-    // }
-
-    // difference(range: IntRange): IntRange {
-        
-    // }
+        return new Range(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
+    }
 
     toString(): string {
         if (this.isEmpty()) {
             return 'empty';
         }
-        const incLowerBound = this.hasClosedLowerBound() ? '[' : '(';
-        const incUpperBound = this.hasClosedUpperBound() ? ']' : ')';
+        const incLowerBound = this.lowerInc() ? '[' : '(';
+        const incUpperBound = this.upperInc() ? ']' : ')';
         return `${incLowerBound}${this.lowerBound},${this.upperBound}${incUpperBound}`;
+    }
+
+    copy(): Range<T> {
+        return new Range<T>(this.numToVal(this.lowerBound), this.numToVal(this.upperBound), this.flags, this.valToNum, this.numToVal);
     }
 }
