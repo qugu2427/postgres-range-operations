@@ -1,9 +1,9 @@
 import { Range } from "./range";
+import { NumRange } from "./num-range";
 
-export class NumRange extends Range<number> {
-
+export class IntRange extends NumRange {
     constructor(lowerBound: number, upperBound: number, flags: number) {
-        super(lowerBound, upperBound, flags, x => x, x => x);
+        super(lowerBound, upperBound, flags);
     }
 
     static fromString(rangeStr: string): NumRange {
@@ -26,8 +26,8 @@ export class NumRange extends Range<number> {
         const lowerBoundStr: string = rangeStr.substring(1, commaIndex);
         const upperBoundStr: string = rangeStr.substring(commaIndex + 1, rangeStr.length - 1);
 
-        const lowerBound: number = lowerBoundStr === "" ? -Infinity : Number(lowerBoundStr);
-        const upperBound: number = upperBoundStr === "" ? Infinity : Number(upperBoundStr);
+        const lowerBound: number = lowerBoundStr === "" ? -Infinity : parseInt(lowerBoundStr);
+        const upperBound: number = upperBoundStr === "" ? Infinity : parseInt(upperBoundStr);
 
         if (isNaN(lowerBound) || isNaN(upperBound)) {
             throw new Error("NaN not allowed in range");

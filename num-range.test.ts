@@ -77,6 +77,7 @@ describe(range.toString(), () => {
         [NumRange.fromString("(0,3)"), NumRange.fromString("(1,3)")],
         [NumRange.fromString("(,1)"), NumRange.fromString("(,2]")],
         [NumRange.fromString("(0,1)"), NumRange.fromString("(0,2]")],
+        [NumRange.fromString("empty"), NumRange.fromString("(1,2]")],
     ];
 
     const intersection = [
@@ -87,6 +88,7 @@ describe(range.toString(), () => {
 
     const difference = [
         [NumRange.fromString("(0,1.5]"), NumRange.fromString("(1.5,2]")],
+        [NumRange.fromString("[0,1.5)"), NumRange.fromString("[1.5,2]")],
         [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
         [NumRange.fromString("(0,0)"), NumRange.fromString("empty")],
     ];

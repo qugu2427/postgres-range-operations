@@ -34,6 +34,9 @@ export class Range<T> {
         return (this.flags & flag) != 0;
     }
 
+    /**
+     * get a new empty range object
+     */
     getEmptyRange(): Range<T> {
         return new Range<T>(
             this.numToVal(NaN),
@@ -44,44 +47,43 @@ export class Range<T> {
         );
     }
 
-    /*
-
-        equivalent of postgres 'lower_inc()'
-    */
+    /**
+     * equivalent of postgres 'upper_inc()' function
+     */
     lowerInc(): boolean {
         return this.hasFlag(Range.FLAG_LOWER_INC);
     }
 
-    /*
-
-        equivalent of psotgres 'upper_inc()'
-    */
+    /**
+     * equivalent of postgres 'upper_inc()' function
+     */
     upperInc(): boolean {
         return this.hasFlag(Range.FLAG_UPPER_INC);
     }
 
-    /*
-
-        equivalent of postgres 'isempty()'
-    */
+    /**
+     * equivalent of postgres 'isempty()' function
+     */
     isEmpty(): boolean {
         return this.hasFlag(Range.FLAG_EMPTY);
     }
 
-    /*
-
-        equivalent of postgres '='
-    */
-    eq(range: Range<T>): boolean {
+    /**
+     * equals range
+     *
+     * equivalent of postgres '=' operator for a range
+     */
+    equals(range: Range<T>): boolean {
         return this.lowerBound === range.lowerBound &&
             this.upperBound === range.upperBound &&
             this.flags === range.flags;
     }
 
-    /*
-
-        equivalent of postgres '&<'
-    */
+    /**
+     * does not extend left of range
+     *
+     * equivalent of postgres '&>' operator for a range
+     */
     notExtLeftOf(range: Range<T>): boolean {
         if (this.lowerBound === range.lowerBound) {
             return this.lowerInc() === range.lowerInc() ||
@@ -90,10 +92,11 @@ export class Range<T> {
         return this.lowerBound > range.lowerBound;
     }
 
-    /*
-
-        equivalent of postgres '&>'
-    */
+    /**
+     * does not extend right of range
+     *
+     * equivalent of postgres '&<' operator for a range
+     */
     notExtRightOf(range: Range<T>): boolean {
         if (this.upperBound === range.upperBound) {
             return this.upperInc() === range.upperInc() ||
@@ -102,10 +105,20 @@ export class Range<T> {
         return this.upperBound < range.upperBound;
     }
 
+    /**
+     * contains range
+     *
+     * equivalent of postgres '@>' operator for a range
+     */
     containsRange(range: Range<T>): boolean {
         return range.notExtLeftOf(this) && range.notExtRightOf(this);
     }
 
+    /**
+     * contains point
+     *
+     * equivalent of postgres '@>' operator for a single element
+     */
     containsPoint(point: T): boolean {
         const p: number = this.valToNum(point);
         return (p > this.lowerBound && p < this.upperBound) ||
@@ -113,6 +126,11 @@ export class Range<T> {
             (p === this.upperBound && this.upperInc());
     }
 
+    /**
+     * overlaps range
+     *
+     * equivalent of postgres '&&' operator
+     */
     overlaps(range: Range<T>): boolean {
         return !(
             this.strictlyLeftOf(range) ||
@@ -122,6 +140,11 @@ export class Range<T> {
         );
     }
 
+    /**
+     * strictly left of range
+     *
+     * equivalent of postgres '<<' operator
+     */
     strictlyLeftOf(range: Range<T>): boolean {
         if (this.upperBound === range.lowerBound) {
             return !this.upperInc() || !range.lowerInc();
@@ -129,6 +152,11 @@ export class Range<T> {
         return this.upperBound < range.lowerBound;
     }
 
+    /**
+     * strictly right of range
+     *
+     * equivalent of postgres '>>' operator
+     */
     strictlyRightOf(range: Range<T>): boolean {
         if (this.lowerBound === range.upperBound) {
             return !this.lowerInc() || !range.upperInc();
@@ -136,11 +164,21 @@ export class Range<T> {
         return this.lowerBound > range.upperBound;
     }
 
+    /**
+     * adjacent with range
+     *
+     * equivalent of postgres '-|-' operator
+     */
     adjacentTo(range: Range<T>): boolean {
         return this.upperBound === range.lowerBound ||
             this.lowerBound === range.upperBound;
     }
 
+    /**
+     * calculates union with range
+     *
+     * equivalent of postgres '+' operator
+     */
     union(range: Range<T>): Range<T> {
         let lowerBound: number;
         let upperBound: number;
@@ -183,6 +221,11 @@ export class Range<T> {
         return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
     }
 
+    /**
+     * calculates intersection with range
+     *
+     * equivalent of postgres '*' operator
+     */
     intersection(range: Range<T>): Range<T> {
         if (!this.overlaps(range)) {
             return this.getEmptyRange();
@@ -212,6 +255,7 @@ export class Range<T> {
 
         return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
     }
+
 
     difference(range: Range<T>): Range<T> {
         let lowerBound: number = this.lowerBound;
