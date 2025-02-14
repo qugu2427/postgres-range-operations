@@ -6,12 +6,15 @@
     "test": "jest --verbose --coverage"
   },
   "author": "qugu2427",
-  "license": "",
+  "license": "ISC",
   "description": "typescript implementation of postgres 9.3 range operations",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0"
   }
 }

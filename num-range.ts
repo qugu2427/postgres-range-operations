@@ -31,20 +31,6 @@ export class NumRange extends Range<number> {
 
         if (isNaN(lowerBound) || isNaN(upperBound)) {
             throw new Error("NaN not allowed in range");
-        } else if (
-            lowerBound === -Infinity && ((flags & Range.FLAG_LOWER_INC) != 0) ||
-            upperBound === Infinity && ((flags & Range.FLAG_UPPER_INC) != 0)
-        ) {
-            throw new Error("infinite bounds cannot be closed");
-        } else if (lowerBound === Infinity) {
-            throw new Error("lower bound cannot be infinity")
-        } else if (upperBound === -Infinity) {
-            throw new Error("upper bound cannot be negative infinity")
-        } else if (
-            upperBound === lowerBound && 
-            (!(flags & Range.FLAG_LOWER_INC) || !(flags & Range.FLAG_UPPER_INC))
-        ) {
-            return new NumRange(NaN, NaN, Range.FLAG_EMPTY);
         }
 
         return new NumRange(lowerBound, upperBound, flags);

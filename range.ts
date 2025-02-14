@@ -27,7 +27,21 @@ export class Range<T> {
         if (this.lowerBound > this.upperBound) {
             throw new Error("lower bound greater than upper bound")
         }
-        this.flags = flags;
+        if (
+            this.lowerBound === -Infinity && ((flags & Range.FLAG_LOWER_INC) != 0) ||
+            this.upperBound === Infinity && ((flags & Range.FLAG_UPPER_INC) != 0)
+        ) {
+            throw new Error("infinite bounds cannot be closed");
+        } else if (
+            upperBound === lowerBound && 
+            (!(flags & Range.FLAG_LOWER_INC) || !(flags & Range.FLAG_UPPER_INC))
+        ) {
+            this.lowerBound = NaN;
+            this.upperBound = NaN;
+            this.flags = Range.FLAG_EMPTY;
+        } else {
+            this.flags = flags;
+        }
     }
 
     private hasFlag(flag: number): boolean {
@@ -45,6 +59,34 @@ export class Range<T> {
             this.valToNum,
             this.numToVal
         );
+    }
+
+    /**
+     * equivalent of postgres 'lower()' function
+     */
+    lower(): T {
+        return this.numToVal(this.lowerBound);
+    }
+
+    /**
+     * equivalent of postgres 'upper()' function
+     */
+    upper(): T {
+        return this.numToVal(this.upperBound);
+    }
+
+    /**
+     * equivalent of postgres 'lower_inf()' function
+     */
+    lowerInf(): boolean {
+        return this.lowerBound === -Infinity;
+    }
+
+    /**
+     * equivalent of postgres 'upper_inf()' function
+     */
+    upperInf(): boolean {
+        return this.upperBound === Infinity;
     }
 
     /**
@@ -267,10 +309,44 @@ export class Range<T> {
         return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), flags, this.valToNum, this.numToVal);
     }
 
-    // TODO
-    // difference(range: Range<T>): Range<T> {
-    
-    // }
+    /**
+     * calculates diffence with range
+     *
+     * equivalent of postgres '-' operator
+     */
+    difference(range: Range<T>): Range<T> {
+        if(!this.overlaps(range) || range.isEmpty()) {
+            return this.copy();
+        }
+
+        if (this.equals(range)) {
+            return this.getEmptyRange();
+        }
+
+        let flags: number = 0;
+        let lowerBound: number;
+        let upperBound: number;
+
+        const extLeft = !this.notExtLeftOf(range);
+        const extRight = !this.notExtRightOf(range);
+        if(extLeft && extRight) {
+            throw new Error("cannot difference to multiple ranges");
+        } else if (extLeft) {
+            lowerBound = this.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & this.flags;
+            upperBound = range.lowerBound;
+            flags |= range.lowerInc() ? 0 : Range.FLAG_UPPER_INC;
+        } else if (extRight) {
+            lowerBound = range.upperBound;
+            flags |= range.upperInc() ? 0 : Range.FLAG_LOWER_INC;
+            upperBound = this.upperBound;
+            flags |= Range.FLAG_UPPER_INC & this.flags;
+        } else {
+            throw new Error("cannot difference to multiple ranges");
+        }
+
+        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), flags, this.valToNum, this.numToVal);
+    }
 
     toString(): string {
         if (this.isEmpty()) {

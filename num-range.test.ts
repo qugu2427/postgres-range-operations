@@ -8,10 +8,15 @@ describe(range.toString(), () => {
         expect(range.lowerInc()).toBe(false);
         expect(range.upperInc()).toBe(true);
         expect(range.toString()).toEqual("(1,2]");
+        expect(range.lower()).toBe(1);
+        expect(range.upper()).toBe(2);
+        expect(range.lowerInf()).toBe(false);
+        expect(range.upperInf()).toBe(false);
     });
 
     const equals: NumRange = NumRange.fromString("(1,2]"); //
     const notEquals = [
+        NumRange.fromString("(1,2)"),
         NumRange.fromString("(0,2]"),
         NumRange.fromString("empty"),
         NumRange.fromString("(,)"),
@@ -25,13 +30,17 @@ describe(range.toString(), () => {
     ];
     const extLeftOf = [
         NumRange.fromString("(1.1,2]"), //
-        NumRange.fromString("empty") //
+        NumRange.fromString("empty") // is pg, ranges technically extend left and right of empty
     ];
     const notExtRightOf = [
         NumRange.fromString("(1,2]"), //
         NumRange.fromString("(1,3)"), //
         NumRange.fromString("(1,)"), //
         NumRange.fromString("[2.1,2.1]"), //
+    ];
+    const extRightOf = [
+        NumRange.fromString("(1,2)"),
+        NumRange.fromString("empty")
     ];
     const containsRange = [
         NumRange.fromString("(1,2]"), //
@@ -53,7 +62,7 @@ describe(range.toString(), () => {
     const notOverlaps = [
         NumRange.fromString("empty"), //
         NumRange.fromString("(3,4]"), //
-        NumRange.fromString("[0,1)") //
+        NumRange.fromString("[0,1)"), //
     ];
     const strictlyLeftOf = [
         NumRange.fromString("(2,3)"),
@@ -94,7 +103,13 @@ describe(range.toString(), () => {
         [NumRange.fromString("empty"), NumRange.fromString("(1,2]")], //
         [NumRange.fromString("(,)"), NumRange.fromString("(,)")], //
         [NumRange.fromString("(1.1,3)"), NumRange.fromString("(1,3)")], //
+        [NumRange.fromString("(0,1]"), NumRange.fromString("(0,2]")],
+        [NumRange.fromString("(2,3)"), NumRange.fromString("(1,3)")],
+        [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
     ];
+    const unionErr = [
+        NumRange.fromString("(3,4)")
+    ]
 
     const intersection = [
         [NumRange.fromString("(0,1]"), NumRange.fromString("empty")], //
@@ -106,17 +121,26 @@ describe(range.toString(), () => {
         [NumRange.fromString("(1.1,2)"), NumRange.fromString("(1.1,2)")], //
     ];
 
-    // TODO
-    // const difference = [
-    //     [NumRange.fromString("(0,1.5]"), NumRange.fromString("(1.5,2]")], //
-    //     [NumRange.fromString("empty"), NumRange.fromString("(1,2])")],
-    //     [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
-    // ];
+    const difference = [
+        [NumRange.fromString("empty"), NumRange.fromString("(1,2]")],
+        [NumRange.fromString("(3,)"), NumRange.fromString("(1,2]")],
+        [NumRange.fromString("(0,1.5]"), NumRange.fromString("(1.5,2]")],
+        [NumRange.fromString("(0,1.5)"), NumRange.fromString("[1.5,2]")],
+        [NumRange.fromString("(1.5,3)"), NumRange.fromString("(1,1.5]")],
+        [NumRange.fromString("[1.5,3)"), NumRange.fromString("(1,1.5)")],
+        [NumRange.fromString("(1,2]"), NumRange.fromString("empty")],
+    ];
+    const differenceErr = [
+        NumRange.fromString("(0,100)"),
+        NumRange.fromString("(1.1,1.3)"),
+    ];
 
     it(`equals ${equals}`, () => expect(range.equals(equals)).toBe(true));
     notEquals.forEach(r => it(`does not equal ${r}`, () => expect(range.equals(r)).toBe(false)));
     notExtLeftOf.forEach(r => it(`does not extend left of ${r}`, () => expect(range.notExtLeftOf(r)).toBe(true)));
+    extLeftOf.forEach(r => it(`extends left of ${r}`, () => expect(range.notExtLeftOf(r)).toBe(false)));
     notExtRightOf.forEach(r => it(`does not extend right of ${r}`, () => expect(range.notExtRightOf(r)).toBe(true)));
+    extRightOf.forEach(r => it(`extends right of ${r}`, () => expect(range.notExtRightOf(r)).toBe(false)));
     containsRange.forEach(r => it(`contains ${r}`, () => expect(range.containsRange(r)).toBe(true)));
     notContainsRange.forEach(r => it(`does not contain ${r}`, () => expect(range.containsRange(r)).toBe(false)));
     containsPoint.forEach(p => it(`contains ${p}`, () => expect(range.containsPoint(p)).toBe(true)));
@@ -128,7 +152,7 @@ describe(range.toString(), () => {
     strictlyRightOf.forEach(r => it(`is strictly right of ${r}`, () => expect(range.strictlyRightOf(r)).toBe(true)));
     notStrictlyRightOf.forEach(r => it(`is not strictly right of ${r}`, () => expect(range.strictlyRightOf(r)).toBe(false)));
     adjacentTo.forEach(r => it(`is adjacent to ${r}`, () => expect(range.adjacentTo(r)).toBe(true)));
-    notAdjacentTo.forEach(r => it(`is not adjecent to ${r}`, () => expect(range.adjacentTo(r)).toBe(false)));
+    notAdjacentTo.forEach(r => it(`is not adjacent to ${r}`, () => expect(range.adjacentTo(r)).toBe(false)));
 
     union.forEach(arr => {
         const r2 = arr[0];
@@ -137,6 +161,7 @@ describe(range.toString(), () => {
             expect(range.union(r2).equals(u)).toBe(true);
         });
     });
+    unionErr.forEach(r => expect(() => {range.union(r)}).toThrow(Error));
 
     intersection.forEach(arr => {
         const r2 = arr[0];
@@ -146,14 +171,14 @@ describe(range.toString(), () => {
         });
     });
 
-    // TODO
-    // difference.forEach(arr => {
-    //     const r2 = arr[0];
-    //     const d = arr[1];
-    //     it(`difference ${r2} is ${d}`, () => {
-    //         range.difference(r2);
-    //     });
-    // });
+    difference.forEach(arr => {
+        const r2 = arr[0];
+        const d = arr[1];
+        it(`difference ${r2} is ${d}`, () => {
+            expect(range.difference(r2).equals(d)).toBe(true);
+        });
+    });
+    differenceErr.forEach(r => expect(() => {range.difference(r)}).toThrow(Error));
 });
 
 const emptyRange: NumRange = NumRange.fromString("empty");
@@ -165,10 +190,15 @@ describe(`${emptyRange}`, () => {
         expect(emptyRange.upperInc()).toBe(false);
         expect(emptyRange.toString()).toEqual("empty");
     });
+    const emptyRange2: NumRange = emptyRange.getEmptyRange();
+    it(`equals ${emptyRange}`, () => expect(emptyRange.equals(emptyRange2)).toBe(true));
+    it(`union empty is empty`, () => expect(emptyRange.union(emptyRange.getEmptyRange()).isEmpty()).toBe(true));
+    const infRange: NumRange = NumRange.fromString("(,)");
+    it(`union ${infRange} is ${infRange}`, () => expect(emptyRange.union(infRange).equals(infRange)).toBe(true));
 });
 
 
-const invalidRanges = ["", "foo", "(,", "(1,0)"];
+const invalidRanges = ["", "foo", "(,", "(1,0)", "[,]"];
 invalidRanges.forEach(str => {
     describe(`invalid range '${str}'` , () => {
         it(`errors during construction`, () => {
