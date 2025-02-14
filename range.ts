@@ -170,8 +170,12 @@ export class Range<T> {
      * equivalent of postgres '-|-' operator
      */
     adjacentTo(range: Range<T>): boolean {
-        return this.upperBound === range.lowerBound ||
-            this.lowerBound === range.upperBound;
+        if (this.upperBound === range.lowerBound) {
+            return this.upperInc() !== range.lowerInc();
+        } else if (this.lowerBound === range.upperBound) {
+            return this.lowerInc() !== range.upperInc();
+        }
+        return false;
     }
 
     /**

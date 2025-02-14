@@ -64,10 +64,11 @@ describe(range.toString(), () => {
     ];
     const adjacentTo = [
         NumRange.fromString("(2,3)"),
-        NumRange.fromString("[2,3)"),
-        NumRange.fromString("(,1)"),
+        NumRange.fromString("(,1]"),
     ];
     const notAdjacentTo = [
+        NumRange.fromString("(,1)"),
+        NumRange.fromString("[2,3)"),
         NumRange.fromString("empty"),
         NumRange.fromString("(1,3)"),
         NumRange.fromString("(,2]"),
@@ -75,8 +76,8 @@ describe(range.toString(), () => {
 
     const union = [
         [NumRange.fromString("(0,3)"), NumRange.fromString("(1,3)")],
-        [NumRange.fromString("(,1)"), NumRange.fromString("(,2]")],
-        [NumRange.fromString("(0,1)"), NumRange.fromString("(0,2]")],
+        [NumRange.fromString("(,1]"), NumRange.fromString("(,2]")],
+        [NumRange.fromString("(0,1]"), NumRange.fromString("(0,2]")],
         [NumRange.fromString("empty"), NumRange.fromString("(1,2]")],
     ];
 
