@@ -40,6 +40,11 @@ export class NumRange extends Range<number> {
             throw new Error("lower bound cannot be infinity")
         } else if (upperBound === -Infinity) {
             throw new Error("upper bound cannot be negative infinity")
+        } else if (
+            upperBound === lowerBound && 
+            !(flags & Range.FLAG_LOWER_INC) !== !(flags & Range.FLAG_UPPER_INC)
+        ) {
+            return new NumRange(NaN, NaN, Range.FLAG_EMPTY);
         }
 
         return new NumRange(lowerBound, upperBound, flags);

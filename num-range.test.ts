@@ -10,28 +10,34 @@ describe(range.toString(), () => {
         expect(range.toString()).toEqual("(1,2]");
     });
 
-    const equals: NumRange = NumRange.fromString("(1,2]");
+    const equals: NumRange = NumRange.fromString("(1,2]"); //
     const notExtLeftOf = [
-        NumRange.fromString("(1,2]"),
-        NumRange.fromString("[1,2]"),
-        NumRange.fromString("(0,2]"),
-        NumRange.fromString("(,2)"),
+        NumRange.fromString("(1,2]"), //
+        NumRange.fromString("[1,2]"), //
+        NumRange.fromString("(0,2]"), //
+        NumRange.fromString("(,2)"), //
+        NumRange.fromString("[0,0]") //
+    ];
+    const extLeftOf = [
+        NumRange.fromString("(1.1,2]"), //
+        NumRange.fromString("empty") //
     ];
     const notExtRightOf = [
-        NumRange.fromString("(1,2]"),
-        NumRange.fromString("(1,3)"),
-        NumRange.fromString("(1,)"),
+        NumRange.fromString("(1,2]"), //
+        NumRange.fromString("(1,3)"), //
+        NumRange.fromString("(1,)"), //
+        NumRange.fromString("[2.1,2.1]"), //
     ];
     const containsRange = [
-        NumRange.fromString("(1,2]"),
-        NumRange.fromString("(1,2)"),
-        NumRange.fromString("(1.1,1.2)"),
+        NumRange.fromString("(1,2]"), //
+        NumRange.fromString("(1,2)"), //
+        NumRange.fromString("(1.1,1.2)"), //
+        NumRange.fromString("empty"), //
     ];
     const notContainsRange = [
-        NumRange.fromString("(1,2.1]"),
-        NumRange.fromString("[1,2)"),
-        NumRange.fromString("(,)"),
-        NumRange.fromString("empty"),
+        NumRange.fromString("(1,2.1]"), //
+        NumRange.fromString("[1,2)"), // 
+        NumRange.fromString("(,)"), //
     ];
     const containsPoint = [1.1, 2];
     const notContainsPoint = [0, 1, 2.1, NaN];
@@ -41,6 +47,7 @@ describe(range.toString(), () => {
     ];
     const notOverlaps = [
         NumRange.fromString("empty"),
+        NumRange.fromString("(3,4]")
     ];
     const strictlyLeftOf = [
         NumRange.fromString("(2,3)"),
