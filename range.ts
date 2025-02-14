@@ -74,6 +74,9 @@ export class Range<T> {
      * equivalent of postgres '=' operator for a range
      */
     equals(range: Range<T>): boolean {
+        if (this.isEmpty() && range.isEmpty()) {
+            return true;
+        }
         return this.lowerBound === range.lowerBound &&
             this.upperBound === range.upperBound &&
             this.flags === range.flags;
@@ -222,7 +225,7 @@ export class Range<T> {
             flags |= Range.FLAG_UPPER_INC & (range.flags | this.flags);
         }
 
-        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
+        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), flags, this.valToNum, this.numToVal);
     }
 
     /**
@@ -231,7 +234,7 @@ export class Range<T> {
      * equivalent of postgres '*' operator
      */
     intersection(range: Range<T>): Range<T> {
-        if (!this.overlaps(range)) {
+        if (!this.overlaps(range) || range.isEmpty()) {
             return this.getEmptyRange();
         }
 
@@ -239,83 +242,35 @@ export class Range<T> {
         let lowerBound: number;
         let upperBound: number;
 
-        if (range.lowerBound < this.lowerBound) {
-            lowerBound = this.lowerBound;
-        } else if (range.lowerBound > this.lowerBound) {
+        if (this.lowerBound < range.lowerBound) {
             lowerBound = range.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & range.flags;
+        } else if (this.lowerBound > range.lowerBound) {
+            lowerBound = this.lowerBound;
+            flags |= Range.FLAG_LOWER_INC & this.flags;
         } else {
             lowerBound = this.lowerBound;
             flags |= Range.FLAG_LOWER_INC & (this.flags & range.flags)
         }
 
-        if (range.upperBound > this.upperBound) {
-            upperBound = this.upperBound;
-        } else if (range.upperBound < this.upperBound) {
+        if (this.upperBound > range.upperBound) {
             upperBound = range.upperBound;
+            flags |= Range.FLAG_UPPER_INC & range.flags;
+        } else if (this.upperBound < range.upperBound) {
+            upperBound = this.upperBound;
+            flags |= Range.FLAG_UPPER_INC & this.flags;
         } else {
             upperBound = this.upperBound;
             flags |= Range.FLAG_UPPER_INC & (this.flags & range.flags)
         }
 
-        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
+        return new Range<T>(this.numToVal(lowerBound), this.numToVal(upperBound), flags, this.valToNum, this.numToVal);
     }
 
-
-    difference(range: Range<T>): Range<T> {
-        let lowerBound: number = this.lowerBound;
-        let upperBound: number = this.upperBound;
-        let flags: number = 0;
-
-        if (!this.overlaps(range)) {
-            return this.copy();
-        }
-
-        if (
-            range.lowerInc()
-            && this.lowerBound <= range.lowerBound
-            && this.upperBound <= range.upperBound
-        ) {
-            upperBound = range.lowerBound;
-            flags |= range.lowerInc() ? 0 : Range.FLAG_UPPER_INC;
-        } else if (
-            range.upperInc()
-            && range.lowerBound <= this.lowerBound
-            && range.upperBound <= this.upperBound) {
-            lowerBound = range.upperBound;
-            flags |= range.upperInc() ? 0 : Range.FLAG_LOWER_INC;
-        } else if (
-            !this.lowerInc()
-            && this.upperInc()
-            && !range.upperInc()
-            && range.lowerInc()
-            && this.upperBound >= range.lowerBound
-        ) {
-            upperBound = range.lowerBound;
-            flags |= range.lowerInc() ? 0 : Range.FLAG_UPPER_INC;
-            flags |= Range.FLAG_LOWER_INC;
-        } else if (
-            this.lowerInc()
-            && !this.upperInc()
-            && range.upperInc()
-            && !range.lowerInc()
-            && this.lowerBound <= range.upperBound
-        ) {
-            lowerBound = range.upperBound;
-            flags |= range.upperInc() ? 0 : Range.FLAG_LOWER_INC;
-            flags |= Range.FLAG_LOWER_INC;
-        } else if (
-            !this.lowerInc()
-            && !this.upperInc()
-            && !range.upperInc()
-            && !range.lowerInc()
-        ) {
-            return this.getEmptyRange();
-        } else {
-            throw new RangeError("cannot difference to multiple disjoint ranges");
-        }
-
-        return new Range(this.numToVal(lowerBound), this.numToVal(upperBound), this.flags, this.valToNum, this.numToVal);
-    }
+    // TODO
+    // difference(range: Range<T>): Range<T> {
+    
+    // }
 
     toString(): string {
         if (this.isEmpty()) {
@@ -323,7 +278,7 @@ export class Range<T> {
         }
         const incLowerBound = this.lowerInc() ? '[' : '(';
         const incUpperBound = this.upperInc() ? ']' : ')';
-        return `${incLowerBound}${this.lowerBound},${this.upperBound}${incUpperBound}`;
+        return `${incLowerBound}${this.numToVal(this.lowerBound)},${this.numToVal(this.upperBound)}${incUpperBound}`;
     }
 
     copy(): Range<T> {

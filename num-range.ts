@@ -42,7 +42,7 @@ export class NumRange extends Range<number> {
             throw new Error("upper bound cannot be negative infinity")
         } else if (
             upperBound === lowerBound && 
-            !(flags & Range.FLAG_LOWER_INC) !== !(flags & Range.FLAG_UPPER_INC)
+            (!(flags & Range.FLAG_LOWER_INC) || !(flags & Range.FLAG_UPPER_INC))
         ) {
             return new NumRange(NaN, NaN, Range.FLAG_EMPTY);
         }
