@@ -1,3 +1,3 @@
-*.test.ts
+./lib/test
 tsconfig.json
 .github

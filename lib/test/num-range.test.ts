@@ -1,4 +1,4 @@
-import { NumRange } from "./num-range";
+import { NumRange } from "../num-range";
 
 const range: NumRange = NumRange.fromString("(1,2]");
 describe(range.toString(), () => {
