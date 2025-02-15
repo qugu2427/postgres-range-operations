@@ -14,7 +14,7 @@ describe(range.toString(), () => {
         expect(range.upperInf()).toBe(false);
     });
 
-    const equals: NumRange = NumRange.fromString("(1,2]"); //
+    const equals: NumRange = NumRange.fromString("(1,2]");
     const notEquals = [
         NumRange.fromString("(1,2)"),
         NumRange.fromString("(0,2]"),
@@ -22,47 +22,47 @@ describe(range.toString(), () => {
         NumRange.fromString("(,)"),
     ];
     const notExtLeftOf = [
-        NumRange.fromString("(1,2]"), //
-        NumRange.fromString("[1,2]"), //
-        NumRange.fromString("(0,2]"), //
-        NumRange.fromString("(,2)"), //
-        NumRange.fromString("[0,0]") //
+        NumRange.fromString("(1,2]"),
+        NumRange.fromString("[1,2]"),
+        NumRange.fromString("(0,2]"),
+        NumRange.fromString("(,2)"),
+        NumRange.fromString("[0,0]"),
     ];
     const extLeftOf = [
-        NumRange.fromString("(1.1,2]"), //
-        NumRange.fromString("empty") // is pg, ranges technically extend left and right of empty
+        NumRange.fromString("(1.1,2]"),
+        NumRange.fromString("empty") // ranges technically extend left and right of empty
     ];
     const notExtRightOf = [
-        NumRange.fromString("(1,2]"), //
-        NumRange.fromString("(1,3)"), //
-        NumRange.fromString("(1,)"), //
-        NumRange.fromString("[2.1,2.1]"), //
+        NumRange.fromString("(1,2]"),
+        NumRange.fromString("(1,3)"),
+        NumRange.fromString("(1,)"),
+        NumRange.fromString("[2.1,2.1]"),
     ];
     const extRightOf = [
         NumRange.fromString("(1,2)"),
-        NumRange.fromString("empty")
+        NumRange.fromString("empty"),
     ];
     const containsRange = [
-        NumRange.fromString("(1,2]"), //
-        NumRange.fromString("(1,2)"), //
-        NumRange.fromString("(1.1,1.2)"), //
-        NumRange.fromString("empty"), //
+        NumRange.fromString("(1,2]"),
+        NumRange.fromString("(1,2)"),
+        NumRange.fromString("(1.1,1.2)"),
+        NumRange.fromString("empty"),
     ];
     const notContainsRange = [
-        NumRange.fromString("(1,2.1]"), //
-        NumRange.fromString("[1,2)"), // 
-        NumRange.fromString("(,)"), //
+        NumRange.fromString("(1,2.1]"),
+        NumRange.fromString("[1,2)"),
+        NumRange.fromString("(,)"),
     ];
     const containsPoint = [1.1, 2];
     const notContainsPoint = [0, 1, 2.1, NaN];
     const overlaps = [
-        NumRange.fromString("[2,3)"), //
-        NumRange.fromString("(,)"), //
+        NumRange.fromString("[2,3)"),
+        NumRange.fromString("(,)"),
     ];
     const notOverlaps = [
-        NumRange.fromString("empty"), //
-        NumRange.fromString("(3,4]"), //
-        NumRange.fromString("[0,1)"), //
+        NumRange.fromString("empty"),
+        NumRange.fromString("(3,4]"),
+        NumRange.fromString("[0,1)"),
     ];
     const strictlyLeftOf = [
         NumRange.fromString("(2,3)"),
@@ -85,40 +85,40 @@ describe(range.toString(), () => {
         NumRange.fromString("(0,0)"),
     ];
     const adjacentTo = [
-        NumRange.fromString("(2,3)"), //
-        NumRange.fromString("(,1]"),  //
+        NumRange.fromString("(2,3)"),
+        NumRange.fromString("(,1]"),
     ];
     const notAdjacentTo = [
-        NumRange.fromString("(,1)"), //
-        NumRange.fromString("[2,3)"), //
-        NumRange.fromString("empty"), //
-        NumRange.fromString("(1,3)"), //
-        NumRange.fromString("(,2]"), //
+        NumRange.fromString("(,1)"),
+        NumRange.fromString("[2,3)"),
+        NumRange.fromString("empty"),
+        NumRange.fromString("(1,3)"),
+        NumRange.fromString("(,2]"),
     ];
 
     const union = [
-        [NumRange.fromString("(0,3)"), NumRange.fromString("(0,3)")], //
-        [NumRange.fromString("(,1]"), NumRange.fromString("(,2]")], //
-        [NumRange.fromString("(0,1]"), NumRange.fromString("(0,2]")], //
-        [NumRange.fromString("empty"), NumRange.fromString("(1,2]")], //
-        [NumRange.fromString("(,)"), NumRange.fromString("(,)")], //
-        [NumRange.fromString("(1.1,3)"), NumRange.fromString("(1,3)")], //
+        [NumRange.fromString("(0,3)"), NumRange.fromString("(0,3)")],
+        [NumRange.fromString("(,1]"), NumRange.fromString("(,2]")],
+        [NumRange.fromString("(0,1]"), NumRange.fromString("(0,2]")],
+        [NumRange.fromString("empty"), NumRange.fromString("(1,2]")],
+        [NumRange.fromString("(,)"), NumRange.fromString("(,)")],
+        [NumRange.fromString("(1.1,3)"), NumRange.fromString("(1,3)")],
         [NumRange.fromString("(0,1]"), NumRange.fromString("(0,2]")],
         [NumRange.fromString("(2,3)"), NumRange.fromString("(1,3)")],
         [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
     ];
     const unionErr = [
-        NumRange.fromString("(3,4)")
+        NumRange.fromString("(3,4)"),
     ]
 
     const intersection = [
-        [NumRange.fromString("(0,1]"), NumRange.fromString("empty")], //
-        [NumRange.fromString("(,)"), NumRange.fromString("(1,2]")],  //
-        [NumRange.fromString("empty"), NumRange.fromString("empty")], //
-        [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")], // 
-        [NumRange.fromString("(1,2)"), NumRange.fromString("(1,2)")], //
-        [NumRange.fromString("(1,1.1)"), NumRange.fromString("(1,1.1)")], //
-        [NumRange.fromString("(1.1,2)"), NumRange.fromString("(1.1,2)")], //
+        [NumRange.fromString("(0,1]"), NumRange.fromString("empty")],
+        [NumRange.fromString("(,)"), NumRange.fromString("(1,2]")],
+        [NumRange.fromString("empty"), NumRange.fromString("empty")],
+        [NumRange.fromString("(1,2]"), NumRange.fromString("(1,2]")],
+        [NumRange.fromString("(1,2)"), NumRange.fromString("(1,2)")],
+        [NumRange.fromString("(1,1.1)"), NumRange.fromString("(1,1.1)")],
+        [NumRange.fromString("(1.1,2)"), NumRange.fromString("(1.1,2)")],
     ];
 
     const difference = [

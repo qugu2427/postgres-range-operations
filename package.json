@@ -6,7 +6,7 @@
     "test": "jest --verbose --coverage"
   },
   "author": "qugu2427",
-  "license": "BSD-1-Clause",
+  "license": "MIT",
   "description": "typescript implementation of postgres 9.3 range operations",
   "devDependencies": {
     "@types/jest": "^29.5.14",
