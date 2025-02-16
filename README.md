@@ -47,6 +47,7 @@ range.difference(NumRange.fromString("(0,100)")) // error - cannot difference to
 
 // construct without fromString
 new NumRange(1,2, Range.FLAG_LOWER_INC | Range.FLAG_UPPER_INC) // [1,2]
+new NumRange(-Infinity,2) // (,2)
 ```
 ## DateRange
 ```typescript
