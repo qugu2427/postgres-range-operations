@@ -1,4 +1,4 @@
-import { DateRange } from "pgrange/lib/date-range";
+import { DateRange } from "../date-range";
 
 const range: DateRange = DateRange.fromString("(10-07-2001,02-14-2025)");
 describe(range.toString(), () => {
