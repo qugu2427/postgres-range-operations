@@ -44,6 +44,9 @@ range.intersection(NumRange.fromString("(0,1])")) // empty
 
 range.difference(NumRange.fromString("(0,1.5]")) // (1.5,2]
 range.difference(NumRange.fromString("(0,100)")) // error - cannot difference to disjoint ranges
+
+// construct without fromString
+new NumRange(1,2, Range.FLAG_LOWER_INC | Range.FLAG_UPPER_INC) // [1,2]
 ```
 ## DateRange
 ```typescript

@@ -1,4 +1,5 @@
-import { NumRange } from "../num-range";
+import { NumRange } from "pgrange/lib/num-range";
+import { Range } from "pgrange/lib/range";
 
 const range: NumRange = NumRange.fromString("(1,2]");
 describe(range.toString(), () => {
@@ -204,5 +205,12 @@ invalidRanges.forEach(str => {
         it(`errors during construction`, () => {
             expect(() => {NumRange.fromString(str)}).toThrow(Error);
         });
+    });
+});
+
+const rangeDirect: NumRange = new NumRange(1,2, Range.FLAG_LOWER_INC | Range.FLAG_UPPER_INC);
+describe(rangeDirect.toString(), () => {
+    it('constructs correctly', () => {
+        expect(rangeDirect.toString()).toEqual("[1,2]");
     });
 });

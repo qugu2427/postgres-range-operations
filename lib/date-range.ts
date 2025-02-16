@@ -1,4 +1,4 @@
-import { Range } from "./range";
+import { Range } from "pgrange/lib/range";
 import { format } from 'date-fns';
 
 export class DateRange extends Range<Date> {
@@ -9,7 +9,7 @@ export class DateRange extends Range<Date> {
 
     private format: string;
 
-    constructor(lowerBound: Date, upperBound: Date, flags: number, format="MM-dd-yyyy") {
+    constructor(lowerBound: Date, upperBound: Date, flags = 0, format = "MM-dd-yyyy") {
         super(lowerBound, upperBound, flags, DateRange.valToNum, DateRange.numToVal);
         this.format = format;
     }
@@ -41,7 +41,7 @@ export class DateRange extends Range<Date> {
             throw new Error("invalid range format");
         }
 
-        var flags: number = 0;
+        let flags: number = 0;
         if (rangeStr[0] === '[') {
             flags |= Range.FLAG_LOWER_INC;
         }
@@ -62,7 +62,7 @@ export class DateRange extends Range<Date> {
         return new DateRange(lowerBound, upperBound, flags);
     }
 
-    toString(): string {
+    override toString(): string {
         if (this.isEmpty()) {
             return 'empty';
         }

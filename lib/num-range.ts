@@ -1,8 +1,8 @@
-import { Range } from "./range";
+import { Range } from "pgrange/lib/range";
 
 export class NumRange extends Range<number> {
 
-    constructor(lowerBound: number, upperBound: number, flags: number) {
+    constructor(lowerBound: number, upperBound: number, flags = 0) {
         super(lowerBound, upperBound, flags, x => x, x => x);
     }
 
@@ -15,7 +15,7 @@ export class NumRange extends Range<number> {
             throw new Error("invalid range format");
         }
 
-        var flags: number = 0;
+        let flags: number = 0;
         if (rangeStr[0] === '[') {
             flags |= Range.FLAG_LOWER_INC;
         }
