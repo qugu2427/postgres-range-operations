@@ -4,7 +4,7 @@ module.exports = {
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
   },
-  "modulePaths": [
-    "./"
+  roots: [
+    "<rootDir>/lib/"
   ]
 };
