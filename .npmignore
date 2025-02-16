@@ -1,2 +1,6 @@
-tsconfig.json
+.github
 coverage
+src
+.gitignore
+eslint.config.js
+tsconfig.json

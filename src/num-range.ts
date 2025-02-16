@@ -1,4 +1,4 @@
-import { Range } from "pgrange/lib/range";
+import { Range } from "./range";
 
 export class NumRange extends Range<number> {
 

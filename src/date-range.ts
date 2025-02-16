@@ -1,4 +1,4 @@
-import { Range } from "pgrange/lib/range";
+import { Range } from "./range";
 import { format } from 'date-fns';
 
 export class DateRange extends Range<Date> {

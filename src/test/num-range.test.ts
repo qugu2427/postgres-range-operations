@@ -1,5 +1,5 @@
-import { NumRange } from "pgrange/lib/num-range";
-import { Range } from "pgrange/lib/range";
+import { NumRange } from "../num-range";
+import { Range } from "../range";
 
 const range: NumRange = NumRange.fromString("(1,2]");
 describe(range.toString(), () => {
