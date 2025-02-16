@@ -4,8 +4,7 @@ module.exports = {
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
   },
-  roots: [
-    "<rootDir>",
-    "<rootDir>/lib/"
-  ]
+  moduleNameMapper: {
+    "^pgrange/lib/(.*)$": "<rootDir>/lib/$1"
+  }
 };
