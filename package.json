@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc index.ts",
     "lint": "npx eslint ./lib index.ts",
-    "test": "jest --verbose --coverage ./lib/test"
+    "test": "jest --verbose --coverage pgrange"
   },
   "author": "qugu2427",
   "license": "MIT",

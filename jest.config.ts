@@ -5,6 +5,7 @@ module.exports = {
     "^.+.tsx?$": ["ts-jest",{}],
   },
   roots: [
+    "<rootDir>",
     "<rootDir>/lib/"
   ]
 };
