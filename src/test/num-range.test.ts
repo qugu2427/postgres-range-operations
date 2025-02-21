@@ -196,6 +196,8 @@ describe(`${emptyRange}`, () => {
     it(`union empty is empty`, () => expect(emptyRange.union(emptyRange.getEmptyRange()).isEmpty()).toBe(true));
     const infRange: NumRange = NumRange.fromString("(,)");
     it(`union ${infRange} is ${infRange}`, () => expect(emptyRange.union(infRange).equals(infRange)).toBe(true));
+    it(`does not contain [1,1]`, () => expect(emptyRange.containsRange(NumRange.fromString("[1,1]"))).toBe(false));
+    it(`does contain empty`, () => expect(emptyRange.containsRange(NumRange.fromString("empty"))).toBe(true));
 });
 
 

@@ -156,6 +156,9 @@ export class Range<T> {
      * equivalent of postgres '@>' operator for a range
      */
     containsRange(range: Range<T>): boolean {
+        if (this.isEmpty() && !range.isEmpty()) {
+            return false;
+        }
         return range.isEmpty() || (range.notExtLeftOf(this) && range.notExtRightOf(this));
     }
 
